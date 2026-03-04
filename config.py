@@ -68,10 +68,13 @@ CHECK_ORDERBOOK_DEPTH = True
 # ══════════════════════════════════════════════════
 
 # 扫描循环间隔 (秒)
-SCAN_INTERVAL = 30
+SCAN_INTERVAL = int(os.getenv("POLY_SCAN_INTERVAL", "120"))
 
 # API 请求间隔 (秒)  — 避免被限速
-API_COOLDOWN = 0.3
+API_COOLDOWN = 0.5
+
+# 每轮扫描最大页数 (每页100条, 降低可节省内存和网络)
+MAX_SCAN_PAGES = int(os.getenv("POLY_MAX_PAGES", "5"))
 
 # ══════════════════════════════════════════════════
 #   通知 (可选)

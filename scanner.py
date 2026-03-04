@@ -157,8 +157,10 @@ def fetch_events(limit: int = 100, offset: int = 0) -> List[dict]:
     return data if isinstance(data, list) else []
 
 
-def fetch_all_markets(max_pages: int = 10) -> List[dict]:
+def fetch_all_markets(max_pages: int = None) -> List[dict]:
     """分页获取所有活跃市场"""
+    if max_pages is None:
+        max_pages = config.MAX_SCAN_PAGES
     all_markets = []
     for page in range(max_pages):
         batch = fetch_markets(limit=100, offset=page * 100)
@@ -170,8 +172,10 @@ def fetch_all_markets(max_pages: int = 10) -> List[dict]:
     return all_markets
 
 
-def fetch_all_events(max_pages: int = 10) -> List[dict]:
+def fetch_all_events(max_pages: int = None) -> List[dict]:
     """分页获取所有活跃事件"""
+    if max_pages is None:
+        max_pages = config.MAX_SCAN_PAGES
     all_events = []
     for page in range(max_pages):
         batch = fetch_events(limit=100, offset=page * 100)
