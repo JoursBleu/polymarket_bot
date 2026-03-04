@@ -48,6 +48,15 @@ export POLY_DRY_RUN="false"
 export POLY_WEBHOOK_URL="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 ```
 
+Windows PowerShell:
+
+```powershell
+$env:POLY_PRIVATE_KEY="你的Polygon钱包私钥"
+$env:POLY_FUNDER_ADDRESS="你的钱包地址"
+$env:POLY_DRY_RUN="false"
+$env:POLY_WEBHOOK_URL="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
+```
+
 ### 4. 持续运行
 
 ```bash
@@ -56,6 +65,22 @@ python main.py
 
 # 查看仓位
 python main.py --status
+```
+
+## 推荐启动顺序
+
+```bash
+# 1) 安装依赖
+pip install -r requirements.txt
+
+# 2) 钱包连通性与授权检查（首次运行）
+python setup_wallet.py
+
+# 3) 先跑一轮扫描确认策略能读到市场
+python main.py --once
+
+# 4) 确认无误后开启实盘
+python main.py
 ```
 
 ## 资金规划 (¥2000 / $275 USDC)
@@ -91,6 +116,13 @@ polymarket_bot/
 - ✅ 订单簿深度检查
 - ✅ 流动性/交易量过滤
 - ✅ DRY-RUN 模式 (默认开启)
+
+## 安全建议
+
+- 私钥只放环境变量，不要写入代码或仓库文件
+- 本项目已通过 `.gitignore` 屏蔽常见密钥文件（`.env`、`*.pem`、`*.key` 等）
+- 建议使用交易专用子钱包，控制单钱包风险敞口
+- 发现私钥泄露时，立即转移资产并更换新钱包
 
 ## 注意事项
 
