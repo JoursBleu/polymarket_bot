@@ -16,6 +16,12 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+try:
+    import requests as _requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+
 import config
 
 logger = logging.getLogger(__name__)
@@ -72,32 +78,57 @@ class ArbOpportunity:
 #   HTTP 工具
 # ══════════════════════════════════════════════════
 
-def _get_opener():
-    """根据代理配置返回 opener"""
-    if config.HTTP_PROXY:
-        proxy_handler = urllib.request.ProxyHandler({
-            "http": config.HTTP_PROXY,
-            "https": config.HTTP_PROXY,
+_session = None
+
+
+def _get_session():
+    """获取 HTTP 会话 (requests 优先, 回退 urllib)"""
+    global _session
+    if _session is not None:
+        return _session
+
+    if HAS_REQUESTS:
+        _session = _requests.Session()
+        _session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json",
         })
-        return urllib.request.build_opener(proxy_handler)
-    return urllib.request.build_opener()
-
-
-_opener = None
+        if config.HTTP_PROXY:
+            _session.proxies = {
+                "http": config.HTTP_PROXY,
+                "https": config.HTTP_PROXY,
+            }
+    return _session
 
 
 def fetch_json(url: str, timeout: int = 15) -> Optional[any]:
-    """发送 GET 请求, 返回 JSON (支持代理)"""
-    global _opener
-    if _opener is None:
-        _opener = _get_opener()
+    """发送 GET 请求, 返回 JSON (requests 优先, 回退 urllib)"""
+    # 优先用 requests
+    if HAS_REQUESTS:
+        try:
+            sess = _get_session()
+            resp = sess.get(url, timeout=timeout)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            logger.warning(f"请求失败: {url[:80]}... → {e}")
+            return None
 
+    # 回退 urllib
     try:
+        opener = urllib.request.build_opener()
+        if config.HTTP_PROXY:
+            proxy_handler = urllib.request.ProxyHandler({
+                "http": config.HTTP_PROXY,
+                "https": config.HTTP_PROXY,
+            })
+            opener = urllib.request.build_opener(proxy_handler)
+
         req = urllib.request.Request(url, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json",
         })
-        with _opener.open(req, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode())
     except Exception as e:
         logger.warning(f"请求失败: {url[:80]}... → {e}")
