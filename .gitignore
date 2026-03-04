@@ -4,6 +4,7 @@ __pycache__/
 *.pyd
 .Python
 .env
+.env.*
 .venv/
 venv/
 ENV/
@@ -11,3 +12,18 @@ env/
 *.log
 positions.json
 *.sqlite3
+
+# secrets / keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+secrets.json
+wallet.json
+private_key.txt
+*.keystore
